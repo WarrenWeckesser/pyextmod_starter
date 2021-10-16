@@ -32,6 +32,8 @@ header = """
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
+#include <stddef.h>
+
 // Only need stdio.h for the demo code that prints the arguments.
 #include <stdio.h>
 """

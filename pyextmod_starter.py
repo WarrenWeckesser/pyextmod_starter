@@ -38,6 +38,11 @@ header = """
 #include <stdio.h>
 """
 
+numpy_header = """
+#define NPY_NO_DEPRECATED_API NPY_API_VERSION
+#include <numpy/ndarrayobject.h>
+"""
+
 init_start = """
 PyMODINIT_FUNC
 PyInit_{module_name}(void)
@@ -91,6 +96,24 @@ static struct PyModuleDef {module_name}module = {{
 }};
 """
 
+
+numpy_setup = """
+def configuration(parent_package='', top_path=None):
+    from numpy.distutils.misc_util import Configuration
+
+    config = Configuration(None, parent_package, top_path)
+    config.add_extension('{module_name}',
+                         sources=['{c_filename}'])
+    return config
+
+
+if __name__ == "__main__":
+    from numpy.distutils.core import setup
+
+    setup(name='{module_name}',
+          version='0.1',
+          configuration=configuration)
+"""
 
 def _generate_function(func, out):
     sig = inspect.signature(func)
@@ -169,7 +192,28 @@ def _generate_module_definition_struct(module_name, module_doc, out):
                                               module_doc=doc))
 
 
-def generate_extmod(module_name, module_doc, funcs,
+def _create_setup_numpy(module_name, c_filename, setup_out):
+    setup_out.write(numpy_setup.format(module_name=module_name,
+                                       c_filename=c_filename))
+
+
+
+def _create_setup_plain(module_name, c_filename, setup_out):
+    setup_out.write('# This file follows example shown at\n')
+    setup_out.write('# https://docs.python.org/3/extending/building.html#building-c-and-c-extensions-with-distutils\n')
+    setup_out.write('\n')
+    setup_out.write('from distutils.core import setup, Extension\n')
+    setup_out.write('\n')
+    setup_out.write(f"{module_name} = Extension('{module_name}',\n")
+    setup_out.write(f"{' '*len(module_name)}             "
+                    f"sources=['{c_filename}'])\n")
+    setup_out.write("\n")
+    setup_out.write(f"setup(name='{module_name}',\n")
+    setup_out.write("      version='0.1',\n")
+    setup_out.write(f"      ext_modules=[{module_name}])\n")
+
+
+def generate_extmod(module_name, module_doc, funcs, numpy=False,
                     c_filename=None, setup_filename="setup.py"):
     """
     Generate the boilerplate code for a Python extenstion module.
@@ -203,6 +247,9 @@ def generate_extmod(module_name, module_doc, funcs,
 
         out.write(header)
 
+        if numpy:
+            out.write(numpy_header)
+
         if callable(funcs):
             funcs = [funcs]
 
@@ -214,16 +261,14 @@ def generate_extmod(module_name, module_doc, funcs,
         _generate_module_definition_struct(module_name, module_doc, out)
 
         out.write(init_start.format(module_name=module_name))
-
+        if numpy:
+            out.write('\n')
+            out.write('    // Required to access the NumPy C API.\n')
+            out.write('    import_array();\n')
         out.write(init_end)
 
     with open(setup_filename, 'w') as setup_out:
-        setup_out.write('from distutils.core import setup, Extension\n')
-        setup_out.write('\n')
-        setup_out.write(f"{module_name} = Extension('{module_name}',\n")
-        setup_out.write(f"{' '*len(module_name)}             "
-                        f"sources=['{c_filename}'])\n")
-        setup_out.write("\n")
-        setup_out.write(f"setup(name='{module_name}',\n")
-        setup_out.write("      version='0.1',\n")
-        setup_out.write(f"      ext_modules=[{module_name}])\n")
+        if numpy:
+            _create_setup_numpy(module_name, c_filename, setup_out)
+        else:
+            _create_setup_plain(module_name, c_filename, setup_out)

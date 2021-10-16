@@ -1,5 +1,3 @@
-
-
 from pyextmod_starter import generate_extmod
 
 
@@ -23,5 +21,5 @@ Docstring for the example module.
 The module defines the functions process() and tabulate().
 """
 
-# Use the default filenames for output.
+# Use the default filenames for output: examplemodule.c and setup.py.
 generate_extmod("example", example_mod_docstring, [process, tabulate])

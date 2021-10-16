@@ -3,7 +3,7 @@ pyextmod_starter
 
 This module defines the function
 
-    def generate_extmod(module_name, module_doc, funcs,
+    def generate_extmod(module_name, module_doc, funcs, numpy=False,
                         c_filename=None, setup_filename="setup.py")
 
 It generates C code for a Python extension module, with boilerplate code

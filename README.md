@@ -7,10 +7,10 @@ This module defines the function
                         c_filename=None, setup_filename="setup.py")
 
 It generates C code for a Python extension module, with boilerplate code
-for defining functions with in the extension module that have signatures
-like those in the list of functions provided by the `funcs` parameter.
-Only the function signatures of the functions in `funcs` are used; the
-bodies of the functions are ignored.
+for defining functions in the extension module that have signatures like
+those in the list of functions provided by the `funcs` parameter.  Only the
+function signatures of the functions in `funcs` are used; the bodies of the
+functions are ignored.
 
 `generate_extmod` generates the boilerplate code for the extension module,
 but the code will not do anything useful.  The intent is for a developer to
